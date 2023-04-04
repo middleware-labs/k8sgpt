@@ -1,11 +1,15 @@
 package analyze
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
+	"net/http"
 	"os"
+	"strconv"
 	"strings"
+	"time"
 
 	"github.com/fatih/color"
 	"github.com/k8sgpt-ai/k8sgpt/pkg/ai"
@@ -113,20 +117,20 @@ var AnalyzeCmd = &cobra.Command{
 		}
 
 		// print results
-		for n, analysis := range printOutput {
+		for _, analysis := range printOutput {
 
 			switch output {
 			case "json":
 				analysis.Error = analysis.Error[0:]
-				j, err := json.Marshal(analysis)
+				_, err := json.Marshal(analysis)
 				if err != nil {
 					color.Red("Error: %v", err)
 					os.Exit(1)
 				}
-				fmt.Println(string(j))
+				// fmt.Println(string(j))
 			default:
-				fmt.Printf("%s %s(%s)\n", color.CyanString("%d", n),
-					color.YellowString(analysis.Name), color.CyanString(analysis.ParentObject))
+				// fmt.Printf("%s %s(%s)\n", color.CyanString("%d", n),
+				// color.YellowString(analysis.Name), color.CyanString(analysis.ParentObject))
 				for _, err := range analysis.Error {
 					fmt.Printf("- %s %s\n", color.RedString("Error:"), color.RedString(err))
 				}
@@ -134,6 +138,174 @@ var AnalyzeCmd = &cobra.Command{
 			}
 		}
 	},
+}
+
+func GptAnalysis() {
+
+	var aiClient ai.IAI
+	switch "openai" {
+	case "openai":
+		aiClient = &ai.OpenAIClient{}
+		// if err := aiClient.Configure("", language); err != nil {
+		// 	color.Red("Error: %v", err)
+		// 	os.Exit(1)
+		// }
+	default:
+		color.Red("Backend not supported")
+		os.Exit(1)
+	}
+
+	ctx := context.Background()
+	client, err := kubernetes.NewClient("", "")
+	if err != nil {
+		fmt.Println("Error creating client:", err)
+	}
+	// Analysis configuration
+	config := &analyzer.AnalysisConfiguration{
+		Namespace: namespace,
+		NoCache:   nocache,
+		Explain:   true,
+	}
+
+	var analysisResults *[]analyzer.Analysis = &[]analyzer.Analysis{}
+	if err := analyzer.RunAnalysis(ctx, filters, config, client,
+		aiClient, analysisResults); err != nil {
+		color.Red("Error: %v", err)
+		os.Exit(1)
+	}
+
+	// var bar *progressbar.ProgressBar
+	if len(*analysisResults) > 0 {
+		// bar = progressbar.Default(int64(len(*analysisResults)))
+	} else {
+		color.Green("{ \"status\": \"OK\" }")
+		os.Exit(0)
+	}
+
+	// This variable is used to store the results that will be printed
+	// It's necessary because the heap memory is lost when the function returns
+	var printOutput []analyzer.Analysis
+
+	for _, analysis := range *analysisResults {
+
+		// if explain {
+		// 	parsedText, err := analyzer.ParseViaAI(ctx, config, aiClient, analysis.Error)
+		// 	if err != nil {
+		// 		// Check for exhaustion
+		// 		if strings.Contains(err.Error(), "status code: 429") {
+		// 			color.Red("Exhausted API quota. Please try again later")
+		// 			os.Exit(1)
+		// 		}
+		// 		color.Red("Error: %v", err)
+		// 		continue
+		// 	}
+		// 	analysis.Details = parsedText
+		// 	bar.Add(1)
+		// }
+		printOutput = append(printOutput, analysis)
+	}
+
+	// print results
+	for _, analysis := range printOutput {
+
+		switch output {
+		case "json":
+			analysis.Error = analysis.Error[0:]
+			_, err := json.Marshal(analysis)
+			if err != nil {
+				color.Red("Error: %v", err)
+				os.Exit(1)
+			}
+			// fmt.Println(string(j))
+		default:
+
+			// fmt.Printf("%s %s(%s)\n", color.CyanString("%d", n),
+			// color.YellowString(analysis.Name), color.CyanString(analysis.ParentObject))
+			for _, err := range analysis.Error {
+				sendErrorsToMiddleware(err, analysis.Name, analysis.ParentObject)
+				// fmt.Printf("- %s %s\n", color.RedString("Error:"), color.RedString(err))
+			}
+			color.GreenString(analysis.Details)
+		}
+	}
+}
+
+func sendErrorsToMiddleware(message string, name string, parent string) {
+
+	// fmt.Println("sendErrorsToMiddleware--------------------------------")
+	apiKey := ""
+	target := ""
+
+	if val, ok := os.LookupEnv("MW_API_KEY"); ok {
+		apiKey = val
+	}
+
+	if val2, ok2 := os.LookupEnv("TARGET"); ok2 {
+		target = val2
+	}
+
+	body := []byte(`{
+		"resource_logs": [
+		  {
+			"resource": {
+			  "attributes": [
+				{
+				  "key": "mw.account_key",
+				  "value": {
+					"string_value": "` + apiKey + `"
+				  }
+				},
+				{
+				  "key": "mw.resource_type",
+				  "value": {
+					"string_value": "custom"
+				  }
+				}
+			  ]
+			},
+			"scope_logs": [
+				{
+				  "log_records": [
+					  {
+						  "attributes": [
+							{
+							  "key": "device",
+							  "value": {
+								"string_value": "nvme0n1p4"
+							  }
+							}
+						  ],
+						  "body": {
+							  "string_value": "` + message + `"
+							 
+						  },
+						  "severity_number": 17,
+						  "severity_text": "ERROR",
+						  "time_unix_nano": ` + strconv.FormatInt(time.Now().UnixNano(), 10) + `,
+						  "observed_time_unix_nano": ` + strconv.FormatInt(time.Now().UnixNano(), 10) + `
+					  }
+				  ]   
+				}
+			 ]
+		  }
+		]
+	  } 
+	  `)
+
+	request, err := http.NewRequest("POST", target+"/v1/logs", bytes.NewBuffer(body))
+	if err != nil {
+		fmt.Println("Could not send data to Middleware", err)
+	}
+	request.Header.Set("Content-Type", "application/json")
+	request.Header.Set("authorization", apiKey)
+	// fmt.Println("http request created")
+
+	client := &http.Client{}
+	resp, err := client.Do(request)
+	if err != nil {
+		// handle error
+	}
+	defer resp.Body.Close()
 }
 
 func init() {
