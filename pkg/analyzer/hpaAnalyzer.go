@@ -51,11 +51,11 @@ func (HpaAnalyzer) RunAnalysis(ctx context.Context, config *AnalysisConfiguratio
 				scaleTargetRefNotFound = true
 			}
 		default:
-			failures = append(failures, fmt.Sprintf("HorizontalPodAutoscaler uses %s as ScaleTargetRef which does not possible option.", scaleTargetRef.Kind))
+			failures = append(failures, fmt.Sprintf("%s HorizontalPodAutoscaler uses %s as ScaleTargetRef which does not possible option.", hpa.name, scaleTargetRef.Kind))
 		}
 
 		if scaleTargetRefNotFound {
-			failures = append(failures, fmt.Sprintf("HorizontalPodAutoscaler uses %s/%s as ScaleTargetRef which does not exist.", scaleTargetRef.Kind, scaleTargetRef.Name))
+			failures = append(failures, fmt.Sprintf("%s HorizontalPodAutoscaler uses %s/%s as ScaleTargetRef which does not exist.", hpa.name, scaleTargetRef.Kind, scaleTargetRef.Name))
 		}
 
 		if len(failures) > 0 {

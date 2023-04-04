@@ -260,6 +260,12 @@ func sendErrorsToMiddleware(message string, name string, parent string) {
 				  "value": {
 					"string_value": "custom"
 				  }
+				},
+				{
+				  "key": "service.name",
+				  "value": {
+					"string_value": "` + name + `"
+				  }
 				}
 			  ]
 			},
@@ -269,11 +275,17 @@ func sendErrorsToMiddleware(message string, name string, parent string) {
 					  {
 						  "attributes": [
 							{
-							  "key": "device",
+							  "key": "component",
 							  "value": {
-								"string_value": "nvme0n1p4"
+								"string_value": "` + name + `"
 							  }
-							}
+							},
+							{
+								"key": "parent",
+								"value": {
+								  "string_value": "` + parent + `"
+								}
+							  }
 						  ],
 						  "body": {
 							  "string_value": "` + message + `"

@@ -36,7 +36,7 @@ func (ServiceAnalyzer) RunAnalysis(ctx context.Context, config *AnalysisConfigur
 			}
 
 			for k, v := range svc.Spec.Selector {
-				failures = append(failures, fmt.Sprintf("Service has no endpoints, expected label %s=%s", k, v))
+				failures = append(failures, fmt.Sprintf("%s service has no endpoints, expected specific labels %s=%s", ep.Name, k, v))
 			}
 		} else {
 			count := 0
@@ -49,7 +49,7 @@ func (ServiceAnalyzer) RunAnalysis(ctx context.Context, config *AnalysisConfigur
 						count++
 						pods = append(pods, addresses.TargetRef.Kind+"/"+addresses.TargetRef.Name)
 					}
-					failures = append(failures, fmt.Sprintf("Service has not ready endpoints, pods: %s, expected %d", pods, count))
+					failures = append(failures, fmt.Sprintf("%s service has not ready endpoints, pods: %s, expected %d", ep.Name, pods, count))
 				}
 			}
 		}
