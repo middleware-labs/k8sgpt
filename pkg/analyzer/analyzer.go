@@ -6,9 +6,9 @@ import (
 	"strings"
 
 	"github.com/fatih/color"
-	"github.com/k8sgpt-ai/k8sgpt/pkg/ai"
-	"github.com/k8sgpt-ai/k8sgpt/pkg/kubernetes"
 	"github.com/spf13/viper"
+	"k8sgpt/pkg/ai"
+	"k8sgpt/pkg/kubernetes"
 )
 
 var coreAnalyzerMap = map[string]IAnalyzer{

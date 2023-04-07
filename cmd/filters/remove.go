@@ -5,10 +5,10 @@ import (
 	"strings"
 
 	"github.com/fatih/color"
-	"github.com/k8sgpt-ai/k8sgpt/pkg/analyzer"
-	"github.com/k8sgpt-ai/k8sgpt/pkg/util"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"k8sgpt/pkg/analyzer"
+	"k8sgpt/pkg/util"
 )
 
 var removeCmd = &cobra.Command{

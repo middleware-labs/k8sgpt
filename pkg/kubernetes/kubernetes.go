@@ -49,7 +49,8 @@ func NewClient(kubecontext string, kubeconfig string) (*Client, error) {
 			return nil, err
 		}
 
-	return &Client{
-		Client: clientSet,
-	}, nil
+		return &Client{
+			Client: clientSet,
+		}, nil
+	}
 }

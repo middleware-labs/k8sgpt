@@ -5,10 +5,10 @@ import (
 	"fmt"
 
 	"github.com/fatih/color"
-	"github.com/k8sgpt-ai/k8sgpt/pkg/ai"
-	"github.com/k8sgpt-ai/k8sgpt/pkg/kubernetes"
-	"github.com/k8sgpt-ai/k8sgpt/pkg/util"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8sgpt/pkg/ai"
+	"k8sgpt/pkg/kubernetes"
+	"k8sgpt/pkg/util"
 )
 
 type ServiceAnalyzer struct{}

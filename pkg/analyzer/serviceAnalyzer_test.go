@@ -4,11 +4,11 @@ import (
 	"context"
 	"testing"
 
-	"github.com/k8sgpt-ai/k8sgpt/pkg/kubernetes"
 	"github.com/magiconair/properties/assert"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes/fake"
+	"k8sgpt/pkg/kubernetes"
 )
 
 func TestServiceAnalzyer(t *testing.T) {

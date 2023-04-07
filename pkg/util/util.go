@@ -3,8 +3,8 @@ package util
 import (
 	"context"
 
-	"github.com/k8sgpt-ai/k8sgpt/pkg/kubernetes"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8sgpt/pkg/kubernetes"
 )
 
 func GetParent(client *kubernetes.Client, meta metav1.ObjectMeta) (string, bool) {

@@ -4,16 +4,16 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/k8sgpt-ai/k8sgpt/cmd/filters"
-	"github.com/k8sgpt-ai/k8sgpt/cmd/generate"
 	"k8s.io/client-go/util/homedir"
+	"k8sgpt/cmd/filters"
+	"k8sgpt/cmd/generate"
 
 	"github.com/fatih/color"
-	"github.com/k8sgpt-ai/k8sgpt/cmd/analyze"
-	"github.com/k8sgpt-ai/k8sgpt/cmd/auth"
-	"github.com/k8sgpt-ai/k8sgpt/pkg/kubernetes"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"k8sgpt/cmd/analyze"
+	"k8sgpt/cmd/auth"
+	"k8sgpt/pkg/kubernetes"
 )
 
 var (
