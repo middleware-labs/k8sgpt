@@ -11,13 +11,14 @@ import (
 	"strings"
 	"time"
 
+	"k8sgpt/pkg/ai"
+	"k8sgpt/pkg/analyzer"
+	"k8sgpt/pkg/kubernetes"
+
 	"github.com/fatih/color"
 	"github.com/schollz/progressbar/v3"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"k8sgpt/pkg/ai"
-	"k8sgpt/pkg/analyzer"
-	"k8sgpt/pkg/kubernetes"
 )
 
 var (
@@ -240,7 +241,7 @@ func sendErrorsToMiddleware(message string, name string, parent string) {
 		apiKey = val
 	}
 
-	if val2, ok2 := os.LookupEnv("TARGET"); ok2 {
+	if val2, ok2 := os.LookupEnv("MW_TARGET"); ok2 {
 		target = val2
 	}
 
